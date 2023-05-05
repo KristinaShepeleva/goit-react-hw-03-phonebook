@@ -1,5 +1,7 @@
 import { Component } from "react";
 import { nanoid } from "nanoid";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import Container from 'components/Container/Container';
 import ContactForm from 'components/ContactForm/ContactForm';
@@ -8,15 +10,26 @@ import Filter from 'components/Filter/Filter';
 
 class App extends Component {
 state = {
-    contacts: [
-      { id: nanoid(), name: 'Rosie Simpson', number: '459-12-56' },
-      { id: nanoid(), name: 'Hermione Kline', number: '443-89-12' },
-      { id: nanoid(), name: 'Eden Clements', number: '645-17-79' },
-      { id: nanoid(), name: 'Annie Copeland', number: '227-91-26' },
-    ],
+    contacts: [],
     filter: '',
   };
   
+  componentDidMount() {
+    const contacts = localStorage.getItem('contacts');
+    const parsContact = JSON.parse(contacts);
+
+    if (parsContact) {
+      this.setState({ contacts: parsContact });
+    }
+  }
+  
+  componentDidUpdate(prevProps, prevState) {
+     
+    if (this.state.contacts !== prevState.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
+  }
+
 addContact = ({ name, number }) => {
     const contact = {
       id: nanoid(),
@@ -30,28 +43,26 @@ addContact = ({ name, number }) => {
         contact => contact.name.toLowerCase() === name.toLowerCase(),
       )
     ) {
-      alert(`${name} is already in contacts.`);
+      toast(`${name} is already in contacts.`);
     } else if (contacts.find(contact => contact.number === number)) {
-      alert(`${number} is already in contacts.`);
-    } else if (name.trim() === '' || number.trim() === '') {
-      alert("Enter the contact's name and number phone!");
+      toast(`${name} is already in contacts.`);
     }
     
     else {
       this.setState(({ contacts }) => ({
-        contacts: [contact, ...contacts],
+        contacts: [contact, ...contacts].sort((first, second) => first.name.localeCompare(second.name)),
       }));
     }
   };
 
+
   deleteContact = contactId => {
-    this.setState(({ prevContacts }) => ({
-      contacts: prevContacts.filter(contact => contact.id !== contactId),
+    this.setState(({ contacts }) => ({
+      contacts: contacts.filter(contact => contact.id !== contactId),
     }));
   };
 
-  handleFilter = evn => {
-  
+  handleFilter = evn => {  
   this.setState({ filter: evn.currentTarget.value });
   };
 
@@ -66,6 +77,16 @@ addContact = ({ name, number }) => {
     return (
       <Container>
         <h1>Phonebook</h1> 
+         <ToastContainer position="top-center"
+autoClose={3000}
+hideProgressBar={false}
+newestOnTop={false}
+closeOnClick
+rtl={false}
+pauseOnFocusLoss
+draggable
+pauseOnHover
+theme="light" />
         <ContactForm onSubmit={this.addContact} />
         <h2>Contacts</h2>
         { contacts.length > 1 && (<Filter value={filter} onChange={this.handleFilter} />)}
@@ -76,7 +97,7 @@ addContact = ({ name, number }) => {
             onDelete={this.deleteContact}
           /> 
         ): (<p>Your phonebook is empty.</p>)}
-        
+       
     </Container>
   )
 }
