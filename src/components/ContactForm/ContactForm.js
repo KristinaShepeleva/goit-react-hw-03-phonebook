@@ -23,10 +23,6 @@ state = {
   };  
      
   handleChange = evn => {
-    //const { name, number } = this.state;
-  //   this.setState({
-  //      [name]: value,
-  //  });
     this.setState({
        [evn.currentTarget.name]: evn.target.value,
    });
@@ -65,10 +61,6 @@ state = {
           <button className={css.button} type="submit">Add contact</button>         
     </form>
             )
-
-
-
-
     }
 }
 
